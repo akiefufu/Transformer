@@ -1,6 +1,7 @@
 import math
 
 import torch
+from torch import nn
 
 
 # 注意力计算函数
@@ -33,14 +34,14 @@ def attention(Q, K, V, mask):
 
 
 # 多头注意力计算层
-class MultiHead(torch.nn.Module):
+class MultiHead(nn.Module):
     def __init__(self, num_heads, d_model):
         super().__init__()
-        self.fc_Q = torch.nn.Linear(d_model, d_model)
-        self.fc_K = torch.nn.Linear(d_model, d_model)
-        self.fc_V = torch.nn.Linear(d_model, d_model)
+        self.fc_Q = nn.Linear(d_model, d_model)
+        self.fc_K = nn.Linear(d_model, d_model)
+        self.fc_V = nn.Linear(d_model, d_model)
 
-        self.out_fc = torch.nn.Linear(d_model, d_model)
+        self.out_fc = nn.Linear(d_model, d_model)
 
         # 规范化之后,均值是0,标准差是1
         # BN是取不同样本做归一化
@@ -72,9 +73,9 @@ class MultiHead(torch.nn.Module):
          [-1.3416, -0.4472,  0.4472,  1.3416],
          [-1.3416, -0.4472,  0.4472,  1.3416]]]"""
 
-        self.norm = torch.nn.LayerNorm(normalized_shape=d_model, elementwise_affine=True)
+        self.norm = nn.LayerNorm(normalized_shape=d_model, elementwise_affine=True)
 
-        self.dropout = torch.nn.Dropout(p=0.1)
+        self.dropout = nn.Dropout(p=0.1)
         self.num_heads = num_heads
 
     def forward(self, Q, K, V, mask):
@@ -118,7 +119,7 @@ class MultiHead(torch.nn.Module):
 
 
 # 位置编码层
-class PositionEmbedding(torch.nn.Module):
+class PositionEmbedding(nn.Module):
     def __init__(self, seq_len, d_model, vocab_size=39):
         super().__init__()
         # pos是第几个词,i是第几个维度,d_model是维度总数
@@ -156,17 +157,17 @@ class PositionEmbedding(torch.nn.Module):
 
 
 # 全连接输出层
-class FullyConnectedOutput(torch.nn.Module):
+class FullyConnectedOutput(nn.Module):
     def __init__(self, d_model, num_hiddens):
         super().__init__()
         self.fc = torch.nn.Sequential(
-            torch.nn.Linear(in_features=d_model, out_features=num_hiddens),
-            torch.nn.ReLU(),
-            torch.nn.Linear(in_features=num_hiddens, out_features=d_model),
-            torch.nn.Dropout(p=0.1),
+            nn.Linear(in_features=d_model, out_features=num_hiddens),
+            nn.ReLU(),
+            nn.Linear(in_features=num_hiddens, out_features=d_model),
+            nn.Dropout(p=0.1),
         )
 
-        self.norm = torch.nn.LayerNorm(normalized_shape=d_model,
+        self.norm = nn.LayerNorm(normalized_shape=d_model,
                                        elementwise_affine=True)
 
     def forward(self, x):

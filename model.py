@@ -1,11 +1,12 @@
 import torch
+from torch import nn
 
 from mask import mask_pad, mask_tril
 from util import MultiHead, PositionEmbedding, FullyConnectedOutput
 
 
 # 编码器层
-class EncoderLayer(torch.nn.Module):
+class EncoderLayer(nn.Module):
     def __init__(self, num_heads, d_model, num_hiddens):
         super().__init__()
         self.mh = MultiHead(num_heads, d_model)
@@ -23,10 +24,10 @@ class EncoderLayer(torch.nn.Module):
         return out
 
 
-class Encoder(torch.nn.Module):
+class Encoder(nn.Module):
     def __init__(self, num_layers, num_heads, d_model, num_hiddens):
         super().__init__()
-        self.layers = torch.nn.ModuleList()
+        self.layers = nn.ModuleList()
         for i in range(num_layers):
             self.layers.append(EncoderLayer(num_heads, d_model, num_hiddens))
 
@@ -37,7 +38,7 @@ class Encoder(torch.nn.Module):
 
 
 # 解码器层
-class DecoderLayer(torch.nn.Module):
+class DecoderLayer(nn.Module):
     def __init__(self, num_heads, d_model, num_hiddens):
         super().__init__()
 
@@ -62,10 +63,10 @@ class DecoderLayer(torch.nn.Module):
         return y
 
 
-class Decoder(torch.nn.Module):
+class Decoder(nn.Module):
     def __init__(self, num_layers, num_heads, d_model, num_hiddens):
         super().__init__()
-        self.layers = torch.nn.ModuleList()
+        self.layers = nn.ModuleList()
         for i in range(num_layers):
             self.layers.append(DecoderLayer(num_heads, d_model, num_hiddens))
 
@@ -76,14 +77,14 @@ class Decoder(torch.nn.Module):
 
 
 # 主模型
-class Transformer(torch.nn.Module):
+class Transformer(nn.Module):
     def __init__(self, num_layers, num_heads, d_model, seq_len, num_hiddens, vocab_size=39):
         super().__init__()
         self.embed_x = PositionEmbedding(seq_len, d_model)
         self.embed_y = PositionEmbedding(seq_len, d_model)
         self.encoder = Encoder(num_layers, num_heads, d_model, num_hiddens)
         self.decoder = Decoder(num_layers, num_heads, d_model, num_hiddens)
-        self.fc_out = torch.nn.Linear(d_model, vocab_size)
+        self.fc_out = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, y):
         # [b, 1, 50, 50]
