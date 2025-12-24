@@ -27,14 +27,14 @@ def train(model, loss, optim, sched, num_epochs):
             pred = pred.reshape(-1, 39)
 
             # [8, 51] -> [400]
-            y = y[:, 1:].reshape(-1)
+            y_true = y[:, 1:].reshape(-1)
 
             # 忽略pad
-            select = y != zidian_y['<PAD>']
+            select = y_true != zidian_y['<PAD>']
             pred = pred[select, :]
-            y = y[select]
+            y_true = y_true[select]
 
-            l = loss(pred, y)
+            l = loss(pred, y_true)
             optim.zero_grad()
             l.backward()
             optim.step()
@@ -43,8 +43,8 @@ def train(model, loss, optim, sched, num_epochs):
 
             # [select, 39] -> [select]
             pred_label = pred.argmax(dim=1)
-            total_correct += (pred_label == y).sum().item()
-            total_tokens += y.size(0)
+            total_correct += (pred_label == y_true).sum().item()
+            total_tokens += y_true.size(0)
 
         avg_loss = total_loss / len(loader)
         accuracy = total_correct / total_tokens
@@ -108,6 +108,17 @@ def predict(model, x):
             # 以当前词预测下一个词,填到结果中
             target[:, i + 1] = out
 
+            if out == zidian_y['<EOS>']:
+                break
+
+    pad = torch.tensor([zidian_y['<PAD>']] * 50, device=device)
+
+    target = torch.cat(
+        [target.squeeze(0), pad],
+        dim=0
+    ).unsqueeze(0)
+    target = target[:, :51]
+
     return target
 
 if __name__ == '__main__':
@@ -115,11 +126,11 @@ if __name__ == '__main__':
     print("Using device:", device)
 
     num_heads = 4
-    num_layers = 3
+    num_layers = 6  # Transformer 中的EncoderLayer和DecoderLayer的个数
     d_model = 32
     seq_len = 50
     vocab_size = 39
-    num_hiddens = 96
+    num_hiddens = 64    # 输出全连接层的隐藏单元个数
 
     model = Transformer(num_layers, num_heads, d_model, seq_len, num_hiddens).to(device)
     loss = nn.CrossEntropyLoss().to(device)
