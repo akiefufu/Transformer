@@ -27,7 +27,7 @@ class EncoderLayer(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, num_layers, num_heads, d_model, num_hiddens):
         super().__init__()
-        self.layers = nn.ModuleList()
+        self.layers = nn.Sequential()
         for i in range(num_layers):
             self.layers.append(EncoderLayer(num_heads, d_model, num_hiddens))
 
@@ -66,7 +66,7 @@ class DecoderLayer(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, num_layers, num_heads, d_model, num_hiddens):
         super().__init__()
-        self.layers = nn.ModuleList()
+        self.layers = nn.Sequential()
         for i in range(num_layers):
             self.layers.append(DecoderLayer(num_heads, d_model, num_hiddens))
 
